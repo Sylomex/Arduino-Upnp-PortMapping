@@ -17,7 +17,9 @@ UPNP based portmapping function for the Arduino
 
 ## Background
 
-For those of use who create Arduino server type programs using the Ethernet shield this project may help you.  Generally there is a limitation when connecting to your Arduino that you need to be on the same LAN.  You are not able to connect to the device via the internet.  This is because the Arduino is given a private IP address on your internal network, it has no public IP address.
+This is a fork from the great work done by deverick on his original Arduino-Upnp-PortMapping project. In trying to use this on a Netgear WNDRv3700 router, the parsing implementation would hang so I decided to fork the repo and commit my changes so others could benefit from the fix.
+
+For those of you who create Arduino server type programs using the Ethernet shield this project may help you.  Generally there is a limitation when connecting to your Arduino that you need to be on the same LAN.  You are not able to connect to the device via the internet.  This is because the Arduino is given a private IP address on your internal network, it has no public IP address.
 
 I had this problem and found there was really only one solution which will allow me to connect to the Arduino remotely.  The solution involves using the UPNP functionality which is built into most modern wireless routers.  UPNP, and more specifically a sub-protocol called Internet-Gateway-Device allows any device on the local network to add a port mapping to the router, thereby allowing internet resources to access the device by calling the router's WAN (public) IP address and the mapped external port number.  The router will pass the packet to the internal IP address and the mapped internal port number.
 
@@ -37,13 +39,15 @@ The functionality has been created as a C++ library for Arduino.  This library c
 
 The UPNP standard is based on the SOAP/XML protocol.  XML messages are very verbose, and not ideal for a simple MCU which the Arduino uses. Creating, sending, receiving and parsing SOAP/XML messages uses up most of the Arduino's extremely limited resources.
 
-This code has been designed and tested with 3 different routers.  UPNP implementation across different hardware appears to have slight variances.  Due to the simplistic way XML parsing is implemented in this code it is quite possible that this code will not work correctly with other routers.  If this is case I am extremely interested in getting feedback and/or code updates to improve the code
+This code has been designed and tested with 4 different routers.  UPNP implementation across different hardware appears to have slight variances.  Due to the simplistic way XML parsing is implemented in this code it is quite possible that this code will not work correctly with other routers.  If this is case I am extremely interested in getting feedback and/or code updates to improve the code
 
 ## Tested Router Models
 
 1. TP-LINK TL-WR541G
 2. D-LINK DI-624+A
 3. D-LINK DIR-605
+4. Netgear WNDRV3700
+
 
 ** Please send feedback about other models.
 

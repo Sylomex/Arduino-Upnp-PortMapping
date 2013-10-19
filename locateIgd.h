@@ -51,12 +51,14 @@ const prog_char CAPS_LOC_TYPE_ID[4] PROGMEM = "LOC";
 const prog_char CAPS_LOC_TYPE_ID_2[7] PROGMEM = "ATION:";
 
 // XML packet parsing strings
-const prog_char SERVICE_TYPE[10] PROGMEM = "<serviceT";  //need to match on partial word, as full tag was causing issue on <service> line which was wrapping and skipping the next line
-const prog_char SERVICE_STRING[32] PROGMEM = "ype>urn:schemas-upnp-org:servic";
-const prog_char SERVICE_STRING_2[20] PROGMEM = "e:WANIPConnection:1";
-const prog_char CONTROL_URL[13] PROGMEM = "<controlURL>";
-const prog_char END_SERVICE[11] PROGMEM = "</service>";
-const prog_char START_XML_TAG[2] PROGMEM = "<";
+//const prog_char SERVICE_TYPE[12] PROGMEM = "<serviceTy";  //need to match on partial word, as full tag was causing issue on <service> line which was wrapping and skipping the next line
+//const prog_char SERVICE_STRING[32] PROGMEM = "ype>urn:schemas-upnp-org:servic";
+//const prog_char SERVICE_STRING_2[26] PROGMEM = "e:WANIPConnectionDevice:1";
+//const prog_char CONTROL_URL[13] PROGMEM = "<controlURL>";
+//const prog_char END_SERVICE[11] PROGMEM = "</service>";
+//const prog_char START_XML_TAG[2] PROGMEM = "<";
+const String START_CONTROL = "<controlURL>";
+const String END_CONTROL = "</controlURL>";
 
 class MSearchClass {
 private:

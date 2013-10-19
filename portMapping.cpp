@@ -225,18 +225,15 @@
 
 	int PortMapClass::getExternalIpRequest()
 	{
-
 		if (_apmClient.connect(igdIp(), igdPort()))
 		{
         	char * buffer = (char *) malloc (256);
     		memset(buffer, 0, 256);
             char * smallbuffer = (char *) malloc (8);
             memset(smallbuffer, 0,8);
-
         	// Make a HTTP request:
 
         	strcpy_P(buffer, EXTIP_HEADER1A);
-
             // convert control URL from string to char array and append to buffer contents
             String controlUrlString = igdControlUrl();
             char controlUrlStringArray[controlUrlString.length()+1];

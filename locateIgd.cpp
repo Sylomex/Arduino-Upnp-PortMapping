@@ -50,7 +50,6 @@ int MSearchClass::find_Igd()
     int result = 0;
 
     unsigned long startTime = millis();
-    
     while(_msearch_state != STATE_MSEARCH_FOUND)
     {
     	if (_msearch_state == STATE_MSEARCH_START)
@@ -118,10 +117,10 @@ int MSearchClass::send_MSEARCH_MESSAGE()
     strcpy_P(buffer, IGD_MSRCH_LINE5b);
     _msearchUdpSocket.print(buffer);
 
-
     free(buffer);
 
     int sendResult = _msearchUdpSocket.endPacket();
+    //Serial.println(sendResult, DEC);
     return sendResult;
 
 }
@@ -182,9 +181,11 @@ int MSearchClass::parseMSearchResponse()
 
     while ((millis() - responseStartTime) < IGD_RESPONSE_TIMEOUT)
     {
+        //Serial.println("1");
         // loop will return to here after each packet to wait for next packet.
         while(_msearchUdpSocket.parsePacket() <= 0)
         {
+            //Serial.println("2");
             if((millis() - responseStartTime) > IGD_RESPONSE_TIMEOUT)
             {
                 //Serial.println(F("ran out of time!"));
@@ -197,6 +198,7 @@ int MSearchClass::parseMSearchResponse()
 
         while (_msearchUdpSocket.available())
         {
+            //Serial.println("3");
             // first six characters of UPD frame should be 'NOTIFY' or 'HTTP/1'
             memset(buffer, 0, 32);
             _msearchUdpSocket.read(buffer, 6);
@@ -207,9 +209,11 @@ int MSearchClass::parseMSearchResponse()
             {
                 while (_msearchUdpSocket.available())
                 {
+                    //Serial.println("4");
                     c = _msearchUdpSocket.read();
                     while (strncmp_P(&c, LINE_FEED, 1) != 0) // iterate through the characters until we hit a LF then drop out
                     {
+                        //Serial.println("5");
                         c = _msearchUdpSocket.read();
                     }
                     memset(buffer, 0, 32);
@@ -219,6 +223,7 @@ int MSearchClass::parseMSearchResponse()
                         // first strip out any spaces
                         while (_msearchUdpSocket.peek() == ASCII_SPACE)
                         {
+                            ////Serial.println("6");
                             _msearchUdpSocket.read(); //discard white space character
                         }
                         memset(buffer, 0, 32);
@@ -243,16 +248,20 @@ int MSearchClass::parseMSearchResponse()
                             // first strip out any spaces
                             while (_msearchUdpSocket.peek() == ASCII_SPACE)
                             {
+                                ////Serial.println("7");
                                 _msearchUdpSocket.read(); //discard white space character
                             }
                             c = _msearchUdpSocket.read(); //read the next character
                             while (strncmp_P(&c, CARRIAGE_RETURN, 1) != 0)  // if we find a carriage return it means the URL and line have ended
                             {
+                                ////Serial.println("8");
                                 _msearchLocationUrl += c;
                                 c = _msearchUdpSocket.read(); //read the next character and append to the string
+                                //Serial.println("next character read");
                             }
                         }
                     }
+
 
                     // if we have the location URL AND the packet is of the type we need then we can stop processing packets. 
                     if (_msearchLocationUrl.length() && type_flag)
@@ -260,7 +269,9 @@ int MSearchClass::parseMSearchResponse()
                         // if we are able to parse out the port number then try to parse out the controlURL
                         if (parseIgdPort(&_msearchLocationUrl)) // if we are able to find 
                         { 
+                            
                             _msearchIgdIp = _msearchUdpSocket.remoteIP();
+                            
                             // finally if we are able to parse out the control URL then return success
                             if (parseControlUrl(&_msearchLocationUrl, _msearchIgdIp, _msearchIgdPort)) {
                                 _msearchUdpSocket.stop();
@@ -334,9 +345,7 @@ int MSearchClass::parseControlUrl(String *locationURL, IPAddress igdIp, uint16_t
 
     char locationUrlArray[locationUrlString.length()+1];
     locationUrlString.toCharArray(locationUrlArray, locationUrlString.length()+1);
-    
     if (_igdClient.connect(igdIp, igdPort)) {
-        
         char * buffer = (char *) malloc (32);
         memset(buffer, 0, 32);
         // Make a HTTP request:
@@ -366,75 +375,30 @@ int MSearchClass::parseXmlResponse()
     memset(buffer, 0, 32);
     char c;
     unsigned long responseStartTime = millis();
-
+    String res = "";
+    int startControl = 0;
+    int endControl = 0;
+    boolean breakout = false;
     while (_igdClient.connected()) 
     {
-        if (_igdClient.available()) 
+        while(_igdClient.available())
         {
-            // first strip out any spaces
-            while (_igdClient.peek() == ASCII_SPACE)
+            char t = _igdClient.read();
+            res.concat(t);
+            
+            if (res.indexOf(START_CONTROL) != -1)
+               startControl = res.indexOf(START_CONTROL) + 12;
+
+            if (res.indexOf(END_CONTROL) != -1)
             {
-                _igdClient.read(); //discard white space character
+                endControl = res.indexOf(END_CONTROL);
+                breakout = true;
+                break;
             }
-            memset(buffer, 0, 32);
-            _igdClient.readBytes(buffer, 9);
-            if (strncmp_P(buffer, SERVICE_TYPE, 9) == 0) // if new line starts with '<serviceTy' then continue checking
-            {
-                memset(buffer, 0, 32);
-                _igdClient.readBytes(buffer, 31);
-                if (strncmp_P(buffer, SERVICE_STRING, 31) == 0) // if first part of line matches our string then continue checking
-                {
-                    memset(buffer, 0, 32);
-                    _igdClient.readBytes(buffer, 19);
-                    if (strncmp_P(buffer, SERVICE_STRING_2, 19) == 0) // if second part of line matches our string then continue checking
-                    {
-                        // now we have found the service type we need setup a loop to iterate thru each line till we find control URL
-                        // we only loop till we hit the  the service tag end wrapper. </service> however we should not get this far before
-                        // finding the control URL tag. not finding control URL tag and getting to </service> is an error condition
-                        while (strncmp_P(buffer, END_SERVICE, 10) != 0)
-                        {
-                            c = _igdClient.read();
-                            while (strncmp_P(&c, LINE_FEED, 1) != 0) // iterate through the characters until we hit a LF then drop out
-                            {
-                                c = _igdClient.read();
-                            }
-                            // strip out any spaces at start of new line
-                            while (_igdClient.peek() == ASCII_SPACE)
-                            {
-                                _igdClient.read(); //discard white space character
-                            }
-                            memset(buffer, 0, 32);
-                            _igdClient.readBytes(buffer, 12);
-                            if (strncmp_P(buffer, CONTROL_URL, 12) == 0) // if new line starts with '<controlURL>' then continue checking
-                            {
-                                c = _igdClient.read(); //read the next character
-                                while (strncmp_P(&c, START_XML_TAG, 1) != 0)  // if we find an XML end tag it means we are at the end of the line
-                                {
-                                    _msearchIgdControlUrl += c;
-                                    c = _igdClient.read(); //read the next character and append to the string
-                                }
-                                _igdClient.stop();
-                                free(buffer);
-                                return 1;
-                            }
-                        }
-                        // We have reached the end service wrapper tag - error condition.
-                        // If we reach here this is an error condition because we should have found
-                        // the control URL tags for this service before getting this far.
-                        _igdClient.stop();
-                        free(buffer);
-                        return 0;
-                    }
-                }
-            }
-            // flush out the full line of characters
-            c = _igdClient.read();
-            while (strncmp(&c, LINE_FEED, 1) != 0) // iterate through the characters until we hit a LF then drop through
-            {
-                //Serial.print(c);
-                c = _igdClient.read();
-            }
-        } //end if (client.available())
+        }
+        
+       
+
         if((millis() - responseStartTime) > IGD_RESPONSE_TIMEOUT)
         {
             //Serial.println(F("ran out of time!"));
@@ -442,8 +406,18 @@ int MSearchClass::parseXmlResponse()
             free(buffer);
             return 0;
         }
-    } //end while (client.connected())
-    // if we are here it is because we couldnt find the URL in the XML. return an error condition
+
+        if (breakout)
+            break;
+    } 
+
+    _msearchIgdControlUrl = res.substring(startControl, endControl);
+    res = "";
+    if (_msearchIgdControlUrl.length() > 0)
+    {
+        return 1;    
+    }
+    
     _igdClient.stop();
     free(buffer);
     return 0;

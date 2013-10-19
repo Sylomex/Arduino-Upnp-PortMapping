@@ -7,6 +7,7 @@
 #include <Ethernet.h>
 #include "EthernetUdp.h"
 #include "locateIgd.h"
+#include <avr/pgmspace.h>
 
 /* Port Mapping state machine. */
 #define STATE_PORTMAP_START 0
@@ -46,7 +47,7 @@ const prog_char PM_BODY15[] PROGMEM = "</s:Envelope>";
 
 
 /* HTTP get external IP request Packet text */
-const prog_char EXTIP_HEADER1A[] PROGMEM = "POST ";
+const prog_char EXTIP_HEADER1A[] PROGMEM = "POST /ctr/IPConn";
 const prog_char EXTIP_HEADER1B[] PROGMEM = " HTTP/1.1\r\nSOAPACTION: \"urn:schemas-upnp-org:service:WANIPConnection:1#GetExternalIPAddress\"\r\nCONTENT-TYPE: text/xml; charset=\"utf-8\"\r\nHOST: ";
 const prog_char EXTIP_HEADER1C[] PROGMEM = "\r\nContent-Length: 297\r\n\r\n";
 const prog_char EXTIP_BODY1[] PROGMEM = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n";
