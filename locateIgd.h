@@ -4,8 +4,9 @@
 #ifndef locateIgd_h
 #define locateIgd_h
 
-#include <Ethernet.h>
-#include "EthernetUdp.h"
+#define prog_char char // Not defined otherwise
+#include <UIPEthernet.h>
+#include <UIPUdp.h>
 
 /* Locate IGD state machine. */
 #define STATE_MSEARCH_START 0

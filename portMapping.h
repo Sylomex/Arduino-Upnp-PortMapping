@@ -4,8 +4,9 @@
 #ifndef PortMapping_h
 #define PortMapping_h
 
-#include <Ethernet.h>
-#include "EthernetUdp.h"
+#define prog_char char // Not defined otherwise
+#include <UIPEthernet.h>
+#include <UIPUdp.h>
 #include "locateIgd.h"
 #include <avr/pgmspace.h>
 
